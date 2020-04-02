@@ -160,7 +160,6 @@ function queuePromiseIfNotLoggedin(promise) {
 }
 
 export default function fetch(method, url, body, handleForbidden, handleUnauthorized) {
-  console.log(handleForbidden, handleUnauthorized);
   const promise = () => new Builder(method, url)
     .authenticated()
     .json(body, handleForbidden, handleUnauthorized)
