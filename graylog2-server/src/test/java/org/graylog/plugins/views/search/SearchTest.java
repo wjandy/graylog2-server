@@ -20,7 +20,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.graylog.plugins.views.search.engine.BackendQuery;
-import org.graylog.plugins.views.search.errors.PermissionException;
 import org.graylog.plugins.views.search.filter.StreamFilter;
 import org.graylog.plugins.views.search.searchtypes.MessageList;
 import org.graylog2.plugin.indexer.searches.timeranges.TimeRange;
@@ -75,7 +74,8 @@ public class SearchTest {
         Search search = searchWithQueriesWithStreams("a,b,c", "");
 
         assertThatExceptionOfType(MissingStreamPermissionException.class)
-                .isThrownBy(() -> search.addStreamsToQueriesWithoutStreams(ImmutableSet::of));
+                .isThrownBy(() -> search.addStreamsToQueriesWithoutStreams(ImmutableSet::of))
+                .satisfies(ex -> assertThat(ex.streamsWithMissingPermissions()).isEmpty());
     }
 
     @Test
