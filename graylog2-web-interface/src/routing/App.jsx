@@ -2,18 +2,14 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import styled, { css } from 'styled-components';
 
-import Navigation from 'components/navigation/Navigation';
 import { Scratchpad, Icon, Spinner } from 'components/common';
-import connect from 'stores/connect';
-import StoreProvider from 'injection/StoreProvider';
 import { ScratchpadProvider } from 'providers/ScratchpadProvider';
-import CurrentUserContext from 'components/contexts/CurrentUserContext';
-
+import Navigation from 'components/navigation/Navigation';
+import CurrentUserProvider from 'contexts/CurrentUserProvider';
+import CurrentUserContext from 'contexts/CurrentUserContext';
 import AppErrorBoundary from './AppErrorBoundary';
 
 import 'stylesheets/typeahead.less';
-
-const CurrentUserStore = StoreProvider.getStore('CurrentUser');
 
 const ScrollToHint = styled.div(({ theme }) => css`
   position: fixed;
@@ -33,45 +29,39 @@ const ScrollToHint = styled.div(({ theme }) => css`
   filter: ~"progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
 `);
 
-const App = ({ children, currentUser, location }) => {
-  if (!currentUser) {
-    return <Spinner />;
-  }
-
-  return (
-    <ScratchpadProvider loginName={currentUser.username}>
-      <CurrentUserContext.Provider value={currentUser}>
-        <Navigation requestPath={location.pathname}
-                    fullName={currentUser.full_name}
-                    loginName={currentUser.username}
-                    permissions={currentUser.permissions} />
-        <ScrollToHint id="scroll-to-hint">
-          <Icon name="arrow-up" />
-        </ScrollToHint>
-        <Scratchpad />
-        <AppErrorBoundary>
-          {children}
-        </AppErrorBoundary>
-      </CurrentUserContext.Provider>
-    </ScratchpadProvider>
-  );
-};
+const App = ({ children, location }) => (
+  <CurrentUserProvider>
+    <CurrentUserContext.Consumer>
+      {(currentUser) => {
+        if (!currentUser) {
+          return <Spinner />;
+        }
+        return (
+          <ScratchpadProvider loginName={currentUser.username}>
+            <Navigation requestPath={location.pathname}
+                        fullName={currentUser.full_name}
+                        loginName={currentUser.username}
+                        permissions={currentUser.permissions} />
+            <ScrollToHint id="scroll-to-hint">
+              <Icon name="arrow-up" />
+            </ScrollToHint>
+            <Scratchpad />
+            <AppErrorBoundary>
+              {children}
+            </AppErrorBoundary>
+          </ScratchpadProvider>
+        );
+      }}
+    </CurrentUserContext.Consumer>
+  </CurrentUserProvider>
+);
 
 App.propTypes = {
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.element),
     PropTypes.element,
   ]).isRequired,
-  currentUser: PropTypes.shape({
-    full_name: PropTypes.string,
-    username: PropTypes.string,
-    permissions: PropTypes.array,
-  }),
   location: PropTypes.object.isRequired,
 };
 
-App.defaultProps = {
-  currentUser: undefined,
-};
-
-export default connect(App, { currentUser: CurrentUserStore }, ({ currentUser: { currentUser } = {} }) => ({ currentUser }));
+export default App;
