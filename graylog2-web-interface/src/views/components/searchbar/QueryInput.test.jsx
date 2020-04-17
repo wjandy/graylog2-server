@@ -48,7 +48,11 @@ describe('QueryInput', () => {
     const onExecute = jest.fn();
     const wrapper = mount(<SimpleQueryInput onExecute={onExecute} />);
 
-    wrapper.find('QueryInput').instance()._onExecute({});
+    const instance = wrapper.find('QueryInput').instance();
+
+    if (instance) {
+      instance._onExecute({});
+    }
 
     setImmediate(() => {
       expect(onExecute).toHaveBeenCalledWith('*');
